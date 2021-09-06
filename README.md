@@ -5,8 +5,8 @@
 ### Local
 ####Docker
 
-* Run `docker-compose exec web python manage.py migrate`
 * Run `docker-compose up`
+* Run `docker-compose exec web python manage.py migrate`
 
 _Running Management Commands on the Dev Environment_    
 

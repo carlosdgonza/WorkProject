@@ -6,7 +6,7 @@ from musical_works.models import Work, Contributor
 class ContributorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contributor
-        exclude = ('work', 'created_at', 'updated_at', 'id')
+        exclude = ('works', 'created_at', 'updated_at', 'id')
 
 
 class WorkSerializer(serializers.ModelSerializer):

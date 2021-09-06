@@ -4,15 +4,15 @@ from musical_works.models import Work, Contributor
 from musical_works.utils import process_work_with_iswc, process_work_without_iswc
 
 
-class CommandsTestCase(TestCase):
+class WorkProcessingTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.existing_work = Work.objects.create(iswc='1', title='Title 1')
         cls.first_existing_contributor = Contributor.objects.create(full_name='First Contributor')
         cls.second_existing_contributor = Contributor.objects.create(full_name='Second Contributor')
 
-        cls.first_existing_contributor.work.add(cls.existing_work)
-        cls.second_existing_contributor.work.add(cls.existing_work)
+        cls.first_existing_contributor.works.add(cls.existing_work)
+        cls.second_existing_contributor.works.add(cls.existing_work)
 
     def test_process_work_with_iswc_and_new_contributor(self):
         """Test existing work updates its contributors by adding the new one"""
@@ -22,7 +22,7 @@ class CommandsTestCase(TestCase):
         process_work_with_iswc(work_dict)
         self.assertEqual(self.existing_work.contributors.count(), 3)
         new_contributor = Contributor.objects.get(full_name='Third Contributor')
-        self.assertEqual(new_contributor.work.first(), self.existing_work)
+        self.assertEqual(new_contributor.works.first(), self.existing_work)
 
     def test_process_work_with_new_iswc_but_same_title_and_or_contributors(self):
         """Test new work is added although has the same title and contributors (It is a new iswc)"""

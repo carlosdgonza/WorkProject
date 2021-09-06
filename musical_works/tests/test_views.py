@@ -1,5 +1,5 @@
 from django.shortcuts import reverse
-from rest_framework.test import APITestCase, APIClient, APIRequestFactory
+from rest_framework.test import APITestCase
 from rest_framework import status
 
 from musical_works.models import Work, Contributor
@@ -13,7 +13,7 @@ class WorkViewSetTestCase(APITestCase):
             iswc='T0000000000'
         )
         cls.contributor = Contributor.objects.create(full_name='Contributor First Last Name')
-        cls.contributor.work.add(cls.work)
+        cls.contributor.works.add(cls.work)
 
     def test_get_success(self):
         """Call to endpoint must succeed when is passed a valid ISWC code."""

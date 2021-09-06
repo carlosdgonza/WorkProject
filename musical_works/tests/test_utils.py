@@ -1,4 +1,5 @@
 from django.test import TestCase
+from unittest.mock import patch
 
 from musical_works.models import Work, Contributor
 from musical_works.utils import process_work_with_iswc, process_work_without_iswc
@@ -91,3 +92,30 @@ class WorkProcessingTestCase(TestCase):
         self.assertEqual(Contributor.objects.count(), 2)
         self.assertEqual(self.existing_work.contributors.count(), 2)
 
+    @patch('musical_works.utils.logger')
+    def test_process_work_with_iswc_but_no_title(self, logger_mock):
+        """Test iswc passed, but no title passed for new record won't be added"""
+        work_dict = {'iswc': '2', 'title': '', 'contributors': ['First Contributor']}
+        contributors = work_dict.get('contributors', [])
+
+        process_work_with_iswc(work_dict)
+        logger_mock.info.assert_called_with(
+            f'Work not added for missing title.'
+            f'ISWC: {work_dict.get("iswc", "")} - Contributors: {",".join(contributors)}'
+        )
+
+    @patch('musical_works.utils.logger')
+    def test_process_work_without_iswc_and_multiple_matching_records(self, logger_mock):
+        """Test iswc passed, but no title passed for new record won't be added"""
+        new_existing_work = Work.objects.create(iswc='2', title='Title 1')
+        new_existing_contributor = Contributor.objects.create(full_name='Third Contributor')
+        new_existing_contributor.works.add(new_existing_work)
+        self.first_existing_contributor.works.add(new_existing_work)
+        work_dict = {'iswc': '', 'title': 'Title 1', 'contributors': ['First Contributor']}
+        contributors = work_dict.get('contributors', [])
+
+        process_work_without_iswc(work_dict)
+        logger_mock.info.assert_called_with(
+            f'Multiple works match for title {work_dict.get("title", "")} and contributors'
+            f' {",".join(contributors)}'
+        )

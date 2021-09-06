@@ -42,7 +42,10 @@ def process_work_with_iswc(musical_work):
             try:
                 work = Work.objects.create(**musical_work)
             except ValidationError:
-                pass
+                logger.info(
+                    f'Work not added for missing title.'
+                    f'ISWC: {musical_work.get("iswc", "")} - Contributors: {",".join(contributors)}'
+                )
 
         if work:
             create_contributors(set(contributors), work)

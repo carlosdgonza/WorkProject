@@ -14,6 +14,7 @@ fsspec==2021.8.1
 iniconfig==1.1.1
 locket==0.2.1
 memory-profiler==0.58.0
+mock==4.0.3
 numpy==1.21.2
 nvidia-ml-py==11.450.51
 packaging==21.0

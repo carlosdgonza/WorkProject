@@ -1,3 +1,6 @@
+# import mock
+from unittest.mock import patch
+
 from django.shortcuts import reverse
 from django.core.management.base import CommandError
 from rest_framework.test import APITestCase, APIClient, APIRequestFactory
@@ -12,7 +15,7 @@ import pytest
 
 class CommandsTestCase(TransactionTestCase):
     def test_reconcile_no_existing_file(self):
-        " Test my custom command."
+        """Test wrong file path passed"""
         args = ['wrong/path.csv']
         opts = {}
         with self.assertRaises(CommandError) as err:
@@ -22,9 +25,12 @@ class CommandsTestCase(TransactionTestCase):
             f'The file specified {args[0]} was not found, please enter a valid file'
         )
 
-    # @pytest.mark.django_db(transaction=True)
-    def test_reconcile_success(self):
-        " Test my custom command."
+    @patch('musical_works.management.commands.reconcile.process_work_with_iswc')
+    @patch('musical_works.management.commands.reconcile.process_work_without_iswc')
+    def test_reconcile_success(self, mock_no_iswc_work_function, mock_iswc_work_function):
+        """
+        Test Command called correctly and records processed as expected
+        """
         args = ['musical_works/tests/mocks/valid_works_metadata.csv']
         opts = {}
 
@@ -33,12 +39,17 @@ class CommandsTestCase(TransactionTestCase):
 
         call_command('reconcile', *args, **opts)
 
-        self.assertEqual(Work.objects.count(), 2)
-        self.assertEqual(Contributor.objects.count(), 2)
+        mock_iswc_work_function.assert_called()
+        self.assertEqual(mock_iswc_work_function.call_count, 2)
+        mock_no_iswc_work_function.assert_called_once()
 
-    def test_reconcile_wrong_record(self):
-        " Test my custom command."
-        args = ['musical_works/tests/mocks/invalid_works_metadata.csv']
+    @patch('musical_works.management.commands.reconcile.process_work_with_iswc')
+    @patch('musical_works.management.commands.reconcile.process_work_without_iswc')
+    def test_reconcile_success(self, mock_no_iswc_work_function, mock_iswc_work_function):
+        """
+        Test Command called correctly and records processed as expected
+        """
+        args = ['musical_works/tests/mocks/valid_works_metadata.csv']
         opts = {}
 
         self.assertEqual(Work.objects.count(), 0)
@@ -46,38 +57,21 @@ class CommandsTestCase(TransactionTestCase):
 
         call_command('reconcile', *args, **opts)
 
-        self.assertEqual(Work.objects.count(), 0)
-        self.assertEqual(Contributor.objects.count(), 0)
+        mock_iswc_work_function.assert_called()
+        self.assertEqual(mock_iswc_work_function.call_count, 2)
+        mock_no_iswc_work_function.assert_called_once()
 
 
-
-
-# class WorkViewSetTestCase(APITestCase):
-#     @classmethod
-#     def setUpTestData(cls):
-#         # cls.work = Work.objects.create(
-#         #     title='Song Title',
-#         #     iswc='T0000000000'
-#         # )
-#         # cls.contributor = Contributor.objects.create(full_name='Contributor First Last Name')
-#         # cls.contributor.work.add(cls.work)
-#
-#     def test_get_success(self):
-#         """Call to endpoint must succeed when is passed a valid ISWC code."""
-#         endpoint = reverse('works:music_work-detail', kwargs={'iswc': self.work.iswc})
-#
-#         response = self.client.get(endpoint)
-#
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.assertEqual(response.data['title'], self.work.title)
-#         self.assertEqual(response.data['iswc'], self.work.iswc)
-#         self.assertEqual(response.data['contributors'][0]['full_name'], self.contributor.full_name)
-#         self.assertEqual(len(response.data['contributors']), 1)
-#
-#     def test_get_failed_unknown_iswc(self):
-#         """Call to endpoint must fail when is passed a wrong ISWC code."""
-#         endpoint = reverse('works:music_work-detail', kwargs={'iswc': 'wrong'})
-#
-#         response = self.client.get(endpoint)
-#
-#         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    #
+    # def test_reconcile_wrong_records(self):
+    #     """Test records with no title and no iswc don't get saved."""
+    #     args = ['musical_works/tests/mocks/invalid_works_metadata.csv']
+    #     opts = {}
+    #
+    #     self.assertEqual(Work.objects.count(), 0)
+    #     self.assertEqual(Contributor.objects.count(), 0)
+    #
+    #     call_command('reconcile', *args, **opts)
+    #
+    #     self.assertEqual(Work.objects.count(), 0)
+    #     self.assertEqual(Contributor.objects.count(), 0)

@@ -6,19 +6,18 @@ from musical_works.models import Work, Contributor
 logger = logging.getLogger(__name__)
 
 
-def process_work_without_iswc(row):
-    musical_work = row[1]
-
-    contributors = musical_work.pop('contributors')
+def process_work_without_iswc(musical_work):
+    # musical_work=row[1].to_dict()
+    contributors = musical_work.pop('contributors', [])
     with transaction.atomic():
         works_queryset = Work.objects.filter(
-            title=musical_work.get('title', None),
+            title=musical_work.get('title', ''),
             contributors__full_name__in=contributors,
         ).distinct()
 
         if works_queryset.count() > 1:
             logger.info(
-                f'Multiple works match for title {musical_work.get("title", None)} and contributors'
+                f'Multiple works match for title {musical_work.get("title", "")} and contributors'
                 f' {",".join(contributors)}'
             )
 
@@ -27,11 +26,10 @@ def process_work_without_iswc(row):
             create_contributors(set(contributors), work)
 
 
-def process_work_with_iswc(row):
-    musical_work = row[1]
-
-    iswc = musical_work.get('iswc')
-    contributors = musical_work.pop('contributors')
+def process_work_with_iswc(musical_work):
+    # musical_work = row[1].to_dict()
+    iswc = musical_work.get('iswc', '')
+    contributors = musical_work.pop('contributors', [])
     work = None
     with transaction.atomic():
         try:

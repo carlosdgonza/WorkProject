@@ -90,7 +90,7 @@ DATABASES = {
         'NAME': env.str('POSTGRES_DB_NAME', 'postgres'),
         'USER': env.str('POSTGRES_DB_USER', 'postgres'),
         'PASSWORD': env.str('POSTGRES_DB_PASSWORD', 'postgres'),
-        'HOST': env.str('POSTGRES_DB_HOST', 'localhost'),
+        'HOST': env.str('POSTGRES_DB_HOST', 'db'),
         'PORT': env.str('POSTGRES_DB_PORT', 5432),
     }
 }

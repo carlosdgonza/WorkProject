@@ -1,6 +1,5 @@
 import numpy as np
 import dask.dataframe as dd
-from django.core.exceptions import ValidationError
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -25,31 +24,28 @@ class Command(BaseCommand):
         df['contributors'] = df.contributors.str.split('|')
 
         # Separate records with ISWC code and without it
-        works_df_nan_iswc = df[df['iswc'].isna()].replace(np.nan, '')
+        works_df_nan_iswc = df[df['iswc'].isna()][df.title.notnull()].replace(np.nan, '')
         works_df_with_iswc = df[df['iswc'].isna() == False].replace(np.nan, '')
         # import pdb;pdb.set_trace()
 
         # Define Custom aggregation method over Dataframe to join contributors for same ISWC
         str_join = dd.Aggregation(
             'str_join',
-            lambda x: x.apply(lambda y: list({elem for l in y for elem in l if elem})),
-            lambda contributors_join: contributors_join.apply(lambda y: list({elem for l in y for elem in l if elem})),
+            lambda x: x.apply(lambda y: list({elem for cont_list in y for elem in cont_list if elem})),
+            lambda contributors_join: contributors_join.apply(lambda y: list({elem for cont_list in y for elem in cont_list if elem})),
         )
 
         # Union of same ISWC contributors
         works_df_by_iswc = works_df_with_iswc.groupby('iswc').agg(
             {'title': 'first', 'contributors': str_join}).reset_index()
 
-        # import pdb;pdb.set_trace()
-        # New Dask Dataframe to be processed without ISWC duplicates
-        # new_works_df = dd.concat([works_df_by_iswc, works_df_nan_iswc], sort=False, ignore_index=True)
-
         # Process Work Music concurrently
-        # with ThreadPoolExecutor() as executor:
-        #     executor.map(process_work, new_works_df.iterrows(), timeout=30)
-
-        for row in works_df_by_iswc.iterrows():
-            process_work_with_iswc(row)
-
-        for row in works_df_nan_iswc.iterrows():
-            process_work_without_iswc(row)
+        # import pdb;pdb.set_trace()
+        with ThreadPoolExecutor() as executor:
+            for row in works_df_by_iswc.iterrows():
+                executor.submit(process_work_with_iswc, row[1].to_dict())
+            for row in works_df_nan_iswc.iterrows():
+                executor.submit(process_work_without_iswc, row[1].to_dict())
+            # import pdb;pdb.set_trace()
+            # executor.map(process_work_with_iswc, works_df_by_iswc.iterrows(), timeout=30)
+            # executor.map(process_work_without_iswc, works_df_nan_iswc.iterrows(), timeout=30)

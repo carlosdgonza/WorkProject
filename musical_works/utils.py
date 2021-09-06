@@ -6,8 +6,8 @@ from musical_works.models import Work, Contributor
 logger = logging.getLogger(__name__)
 
 
-def process_work_without_iswc(musical_work):
-    # musical_work=row[1].to_dict()
+def process_work_without_iswc(row):
+    musical_work=row[1].to_dict()
     contributors = musical_work.pop('contributors', [])
     with transaction.atomic():
         works_queryset = Work.objects.filter(
@@ -26,8 +26,9 @@ def process_work_without_iswc(musical_work):
             create_contributors(set(contributors), work)
 
 
-def process_work_with_iswc(musical_work):
-    # musical_work = row[1].to_dict()
+def process_work_with_iswc(row):
+    musical_work = row[1].to_dict()
+    import pdb;pdb.set_trace()
     iswc = musical_work.get('iswc', '')
     contributors = musical_work.pop('contributors', [])
     work = None

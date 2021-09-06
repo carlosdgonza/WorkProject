@@ -42,10 +42,10 @@ class Command(BaseCommand):
         # Process Work Music concurrently
         # import pdb;pdb.set_trace()
         with ThreadPoolExecutor() as executor:
-            for row in works_df_by_iswc.iterrows():
-                executor.submit(process_work_with_iswc, row[1].to_dict())
-            for row in works_df_nan_iswc.iterrows():
-                executor.submit(process_work_without_iswc, row[1].to_dict())
+            # for row in works_df_by_iswc.iterrows():
+            #     executor.submit(process_work_with_iswc, row[1].to_dict())
+            # for row in works_df_nan_iswc.iterrows():
+            #     executor.submit(process_work_without_iswc, row[1].to_dict())
             # import pdb;pdb.set_trace()
-            # executor.map(process_work_with_iswc, works_df_by_iswc.iterrows(), timeout=30)
-            # executor.map(process_work_without_iswc, works_df_nan_iswc.iterrows(), timeout=30)
+            executor.map(process_work_with_iswc, works_df_by_iswc.iterrows(), timeout=30)
+            executor.map(process_work_without_iswc, works_df_nan_iswc.iterrows(), timeout=30)
